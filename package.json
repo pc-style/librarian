@@ -7,12 +7,13 @@
     "#evals/*": "./evals/*"
   },
   "scripts": {
-    "build": "eve build",
-    "dev": "eve dev",
-    "start": "eve start",
+    "build": "bun scripts/with-skate-env.mjs bunx eve build",
+    "dev": "bun scripts/with-skate-env.mjs bunx eve dev",
+    "start": "bun scripts/with-skate-env.mjs bunx eve start",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.1",
     "@vercel/connect": "0.2.2",
     "ai": "^7.0.0",
     "eve": "^0.16.2",
@@ -28,5 +29,4 @@
   "engines": {
     "node": "24.x"
   }
-
 }
