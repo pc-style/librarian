@@ -40,7 +40,7 @@ The service currently accepts any token, but callers should already use the bear
 
 ## Quick usage
 
-Prefer the bundled script when shell access is available:
+Prefer the bundled script when shell access is available. Librarian performs live repo/web research, so the command may run for **5+ minutes** on broad or tool-heavy questions. Use a generous command timeout and do not assume it is stuck just because it is quiet while the remote agent works.
 
 ```bash
 skills/librarian/scripts/ask-librarian.mjs "In the GitHub repo vercel/ai, where is createOpenAICompatible documented or implemented? Summarize with source paths."
