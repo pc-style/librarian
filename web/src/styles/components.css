@@ -1,0 +1,273 @@
+/*
+  Librarian component polish for Starlight 0.41.
+  Uses only Starlight tokens and Librarian theme variables.
+*/
+
+/* Global interaction ------------------------------------------------------ */
+:where(a, button, summary, select, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 3px;
+  border-radius: var(--lib-radius-sm);
+}
+
+:where(a, button, summary, select) {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* Header and search ------------------------------------------------------- */
+.header {
+  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 62%, transparent);
+  background: var(--sl-color-bg-nav);
+  backdrop-filter: blur(12px);
+}
+
+.header .right-group,
+.header .title-wrapper,
+.header site-search {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+site-search button[data-open-modal] {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius);
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 72%, transparent);
+  color: var(--sl-color-gray-2);
+}
+
+site-search button[data-open-modal]:hover {
+  border-color: color-mix(in srgb, var(--sl-color-accent) 46%, var(--sl-color-gray-5));
+  color: var(--sl-color-gray-1);
+}
+
+site-search button[data-open-modal]:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sl-color-accent) 26%, transparent);
+}
+
+/* Sidebar and table of contents ------------------------------------------ */
+.sidebar,
+.sidebar-pane,
+.sidebar-content,
+.right-sidebar-panel {
+  background: var(--sl-color-bg-sidebar);
+}
+
+.sidebar-pane {
+  border-inline-end: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 55%, transparent);
+}
+
+.sidebar-content ul,
+starlight-toc ul {
+  gap: 0.18rem;
+}
+
+.sidebar-content a,
+.sidebar-content summary,
+starlight-toc a {
+  border-radius: var(--lib-radius-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.sidebar-content a:hover,
+.sidebar-content summary:hover,
+starlight-toc a:hover {
+  color: var(--sl-color-white);
+  background: color-mix(in srgb, var(--sl-color-accent-low) 42%, transparent);
+}
+
+.sidebar-content a[aria-current="page"] {
+  color: var(--sl-color-accent-high);
+  background: color-mix(in srgb, var(--sl-color-accent-low) 58%, transparent);
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+
+/* Markdown rhythm --------------------------------------------------------- */
+.sl-markdown-content {
+  color: var(--sl-color-gray-2);
+}
+
+.sl-markdown-content > :where(p, ul, ol, blockquote, table) {
+  max-width: 68ch;
+}
+
+.sl-markdown-content :where(p, li) {
+  line-height: 1.78;
+}
+
+.sl-markdown-content :where(ul, ol) {
+  padding-inline-start: 1.35rem;
+}
+
+.sl-markdown-content :where(li + li) {
+  margin-top: 0.45rem;
+}
+
+.sl-markdown-content :where(h2, h3, h4) {
+  margin-top: 2.75rem;
+  color: var(--sl-color-white);
+}
+
+.sl-markdown-content .sl-heading-wrapper + :where(p, ul, ol, table, blockquote) {
+  margin-top: 0.8rem;
+}
+
+.sl-markdown-content a:not(.sl-anchor-link) {
+  color: var(--sl-color-accent-high);
+  text-decoration-color: color-mix(in srgb, var(--sl-color-accent) 58%, transparent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.sl-markdown-content a:not(.sl-anchor-link):hover {
+  color: var(--sl-color-accent);
+  text-decoration-color: currentColor;
+}
+
+/* Tables ------------------------------------------------------------------ */
+.sl-markdown-content table {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius);
+  box-shadow: var(--lib-shadow);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+
+.sl-markdown-content th {
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 68%, transparent);
+  color: var(--sl-color-gray-1);
+  font-weight: 650;
+}
+
+.sl-markdown-content :where(th, td) {
+  border-color: var(--sl-color-gray-5);
+}
+
+.sl-markdown-content tbody tr + tr {
+  border-top: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 72%, transparent);
+}
+
+/* Quotes, chips, and callouts -------------------------------------------- */
+.sl-markdown-content blockquote {
+  border-inline-start: 3px solid var(--sl-color-accent);
+  border-radius: 0 var(--lib-radius-sm) var(--lib-radius-sm) 0;
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 52%, transparent);
+  color: var(--sl-color-gray-2);
+  padding: 0.95rem 1.15rem;
+}
+
+.sl-markdown-content :not(pre) > code,
+kbd {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius-sm);
+  background: var(--sl-color-bg-inline-code);
+  color: var(--sl-color-gray-1);
+  padding: 0.12em 0.38em;
+}
+
+.starlight-aside,
+.sl-markdown-content aside,
+.card,
+.sl-card {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius);
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 56%, transparent);
+  box-shadow: var(--lib-shadow);
+}
+
+/* Code frames ------------------------------------------------------------- */
+.expressive-code figure.frame,
+.sl-markdown-content pre {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius);
+  background: var(--sl-color-bg-inline-code);
+  box-shadow: var(--lib-shadow);
+  overflow: hidden;
+}
+
+.expressive-code figure.frame figcaption.header {
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 72%, var(--sl-color-bg));
+}
+
+.expressive-code .copy button {
+  border-radius: var(--lib-radius-sm);
+}
+
+/* Hero/action buttons ----------------------------------------------------- */
+.sl-link-button,
+.action {
+  border-radius: var(--lib-radius);
+}
+
+.sl-link-button.primary,
+.action.primary {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+  box-shadow: var(--lib-shadow);
+}
+
+.sl-link-button.primary:hover,
+.action.primary:hover {
+  border-color: var(--sl-color-accent-high);
+  background: var(--sl-color-accent-high);
+  color: var(--sl-color-black);
+  box-shadow: var(--lib-shadow-lg);
+}
+
+.sl-link-button.minimal,
+.sl-link-button.secondary,
+.action.minimal,
+.action.secondary {
+  border: 1px solid var(--sl-color-gray-5);
+  background: transparent;
+  color: var(--sl-color-accent-high);
+}
+
+.sl-link-button.minimal:hover,
+.sl-link-button.secondary:hover,
+.action.minimal:hover,
+.action.secondary:hover {
+  border-color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent-low) 54%, transparent);
+  color: var(--sl-color-accent-high);
+}
+
+/* Footer pagination ------------------------------------------------------- */
+.pagination-links a {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--lib-radius);
+  background: color-mix(in srgb, var(--sl-color-bg-inline-code) 42%, transparent);
+}
+
+.pagination-links a:hover {
+  border-color: color-mix(in srgb, var(--sl-color-accent) 48%, var(--sl-color-gray-5));
+  box-shadow: var(--lib-shadow);
+}
+
+/* Mobile and reduced motion ---------------------------------------------- */
+@media (max-width: 50rem) {
+  .header {
+    backdrop-filter: none;
+  }
+
+  .sl-markdown-content > :where(p, ul, ol, blockquote, table) {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+    scroll-behavior: auto;
+    transition-duration: 0.001ms;
+  }
+}

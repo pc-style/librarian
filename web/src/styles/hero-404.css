@@ -1,0 +1,147 @@
+/* Premium splash-page helpers for the custom 404 page.
+ * Loaded after shared Librarian tokens and Starlight styles via customCss.
+ */
+
+/* Starlight splash pages render their own hero before markdown content. The
+ * 404 page supplies a purpose-built archive-style hero in markdown instead.
+ */
+.hero:has(+ .sl-markdown-content .lib-404) {
+  display: none;
+}
+
+.lib-404 {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 8vw, 5rem) 0 clamp(3rem, 9vw, 6rem);
+  text-align: center;
+}
+
+.lib-404::before {
+  content: "";
+  position: absolute;
+  inset: -3rem max(-14vw, -8rem);
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--sl-color-accent) 16%, transparent), transparent 24rem),
+    linear-gradient(90deg, transparent 0 4.5rem, color-mix(in srgb, var(--sl-color-accent) 13%, transparent) 4.55rem 4.62rem, transparent 4.68rem 9rem);
+  background-size: auto, 9rem 100%;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.lib-404__kicker {
+  margin: 0;
+  font-family: var(--lib-font-mono);
+  font-size: clamp(0.72rem, 1.5vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  line-height: 1.2;
+  color: var(--sl-color-accent-high);
+}
+
+.lib-404__code {
+  margin: 0;
+  font-family: var(--lib-font-serif);
+  font-size: clamp(8rem, 28vw, 18rem);
+  font-weight: 600;
+  letter-spacing: -0.085em;
+  line-height: 0.75;
+  color: var(--sl-color-white);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--sl-color-accent) 38%, transparent);
+}
+
+.lib-404__line {
+  max-width: 34rem;
+  margin: 0;
+  font-family: var(--lib-font-sans);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.7;
+  color: var(--sl-color-gray-2);
+}
+
+.lib-404__card {
+  width: min(100%, 34rem);
+  margin-top: 0.5rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 72%, transparent);
+  border-radius: var(--lib-radius);
+  background: color-mix(in srgb, var(--sl-color-bg-nav) 82%, transparent);
+  box-shadow: var(--lib-shadow);
+}
+
+.lib-404__card code {
+  font-family: var(--lib-font-mono);
+  font-size: clamp(0.82rem, 1.8vw, 0.95rem);
+  color: var(--sl-color-gray-1);
+}
+
+.lib-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.lib-404__actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 72%, transparent);
+  border-radius: var(--lib-radius-sm);
+  font-family: var(--lib-font-mono);
+  font-size: 0.86rem;
+  line-height: 1;
+  color: var(--sl-color-gray-1);
+  text-decoration: none;
+}
+
+.lib-404__actions a:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+
+.lib-404__actions a:focus-visible {
+  outline: 2px solid var(--sl-color-accent-high);
+  outline-offset: 4px;
+}
+
+:root[data-theme="light"] .lib-404::before {
+  opacity: 0.34;
+}
+
+:root[data-theme="light"] .lib-404__card {
+  background: color-mix(in srgb, var(--sl-color-bg) 86%, white 14%);
+}
+
+:root[data-theme="light"] .lib-404__actions a:hover {
+  color: var(--sl-color-black);
+}
+
+@media (max-width: 38rem) {
+  .lib-404 {
+    padding-top: 1.5rem;
+  }
+
+  .lib-404__actions {
+    width: 100%;
+  }
+
+  .lib-404__actions a {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-404,
+  .lib-404 * {
+    scroll-behavior: auto;
+  }
+}

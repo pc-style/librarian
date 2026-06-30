@@ -8,7 +8,10 @@
   },
   "scripts": {
     "build": "bun scripts/with-skate-env.mjs bunx eve build",
+    "build:web": "cd web && bun install && bunx astro build",
+    "build:all": "VERCEL=1 bunx eve build && bun run build:web && node scripts/merge-web.mjs",
     "dev": "bun scripts/with-skate-env.mjs bunx eve dev",
+    "dev:web": "cd web && bunx astro dev",
     "start": "bun scripts/with-skate-env.mjs bunx eve start",
     "typecheck": "tsc"
   },

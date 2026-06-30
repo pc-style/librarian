@@ -1,0 +1,108 @@
+/*
+  Librarian theme tokens.
+  Warm near-black canvas with a single antique-gold accent.
+  Fonts are intentionally not defined here.
+*/
+
+/* Dark is the default Starlight theme for Librarian. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Antique gold accent. */
+  --sl-color-accent: hsl(38, 58%, 58%);
+  --sl-color-accent-low: hsl(34, 36%, 15%);
+  --sl-color-accent-high: hsl(40, 80%, 80%);
+
+  /* Warm neutral ramp: library-black canvas, quiet parchment text. */
+  --sl-color-white: hsl(40, 28%, 96%);
+  --sl-color-gray-1: hsl(38, 18%, 88%);
+  --sl-color-gray-2: hsl(36, 13%, 74%);
+  --sl-color-gray-3: hsl(34, 10%, 58%);
+  --sl-color-gray-4: hsl(33, 9%, 38%);
+  --sl-color-gray-5: hsl(32, 9%, 24%);
+  --sl-color-gray-6: hsl(31, 8%, 13%);
+  --sl-color-gray-7: hsl(30, 8%, 7%);
+  --sl-color-black: hsl(30, 8%, 5%);
+
+  --sl-color-bg: hsl(30, 8%, 5%);
+  --sl-color-bg-nav: hsla(30, 8%, 6%, 0.88);
+  --sl-color-bg-sidebar: hsl(30, 8%, 5%);
+  --sl-color-bg-inline-code: hsl(32, 12%, 12%);
+
+  /* Shared shape and elevation primitives. */
+  --lib-radius-sm: 7px;
+  --lib-radius: 10px;
+  --lib-radius-lg: 14px;
+  --sl-border-radius: var(--lib-radius);
+
+  --lib-shadow: 0 1px 2px hsla(30, 48%, 10%, 0.24), 0 10px 28px hsla(30, 44%, 8%, 0.22);
+  --lib-shadow-lg: 0 2px 4px hsla(30, 50%, 8%, 0.28), 0 22px 56px hsla(30, 44%, 8%, 0.32);
+
+  --sl-content-heading-letter-spacing: -0.018em;
+  --sl-content-h1-letter-spacing: -0.03em;
+}
+
+/* Light mode keeps the same library warmth with an off-white paper canvas. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --sl-color-accent: hsl(32, 72%, 36%);
+  --sl-color-accent-low: hsl(38, 55%, 90%);
+  --sl-color-accent-high: hsl(30, 75%, 28%);
+
+  --sl-color-white: hsl(40, 30%, 99%);
+  --sl-color-gray-1: hsl(34, 28%, 18%);
+  --sl-color-gray-2: hsl(34, 18%, 31%);
+  --sl-color-gray-3: hsl(34, 12%, 45%);
+  --sl-color-gray-4: hsl(36, 13%, 64%);
+  --sl-color-gray-5: hsl(38, 18%, 82%);
+  --sl-color-gray-6: hsl(40, 26%, 92%);
+  --sl-color-gray-7: hsl(40, 30%, 96%);
+  --sl-color-black: hsl(30, 18%, 10%);
+
+  --sl-color-bg: hsl(40, 30%, 97%);
+  --sl-color-bg-nav: hsla(40, 30%, 97%, 0.9);
+  --sl-color-bg-sidebar: hsl(40, 30%, 97%);
+  --sl-color-bg-inline-code: hsl(38, 32%, 92%);
+
+  --lib-radius-sm: 7px;
+  --lib-radius: 10px;
+  --lib-radius-lg: 14px;
+  --sl-border-radius: var(--lib-radius);
+
+  --lib-shadow: 0 1px 2px hsla(32, 42%, 28%, 0.08), 0 10px 28px hsla(32, 38%, 26%, 0.08);
+  --lib-shadow-lg: 0 2px 4px hsla(32, 42%, 24%, 0.1), 0 22px 56px hsla(32, 38%, 24%, 0.14);
+
+  --sl-content-heading-letter-spacing: -0.018em;
+  --sl-content-h1-letter-spacing: -0.03em;
+}
+
+/* Pre-JS auto theme support before Starlight writes data-theme. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --sl-color-accent: hsl(32, 72%, 36%);
+    --sl-color-accent-low: hsl(38, 55%, 90%);
+    --sl-color-accent-high: hsl(30, 75%, 28%);
+
+    --sl-color-white: hsl(40, 30%, 99%);
+    --sl-color-gray-1: hsl(34, 28%, 18%);
+    --sl-color-gray-2: hsl(34, 18%, 31%);
+    --sl-color-gray-3: hsl(34, 12%, 45%);
+    --sl-color-gray-4: hsl(36, 13%, 64%);
+    --sl-color-gray-5: hsl(38, 18%, 82%);
+    --sl-color-gray-6: hsl(40, 26%, 92%);
+    --sl-color-gray-7: hsl(40, 30%, 96%);
+    --sl-color-black: hsl(30, 18%, 10%);
+
+    --sl-color-bg: hsl(40, 30%, 97%);
+    --sl-color-bg-nav: hsla(40, 30%, 97%, 0.9);
+    --sl-color-bg-sidebar: hsl(40, 30%, 97%);
+    --sl-color-bg-inline-code: hsl(38, 32%, 92%);
+
+    --lib-shadow: 0 1px 2px hsla(32, 42%, 28%, 0.08), 0 10px 28px hsla(32, 38%, 26%, 0.08);
+    --lib-shadow-lg: 0 2px 4px hsla(32, 42%, 24%, 0.1), 0 22px 56px hsla(32, 38%, 24%, 0.14);
+  }
+}

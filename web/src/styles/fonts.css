@@ -1,0 +1,64 @@
+/*
+ * Librarian font themes
+ *
+ * This file owns site-wide font-family assignments. The active theme is selected
+ * with the `data-font` attribute on <html>, e.g. <html data-font="editorial">.
+ */
+
+/* Theme stacks ------------------------------------------------------------- */
+
+:root,
+:root[data-font="editorial"] {
+  --lib-font-serif: "Fraunces", Georgia, serif;
+  --lib-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lib-font-mono: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root[data-font="geist"] {
+  --lib-font-serif: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lib-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lib-font-mono: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root[data-font="plex"] {
+  --lib-font-serif: "IBM Plex Serif", Georgia, serif;
+  --lib-font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lib-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root[data-font="literary"] {
+  --lib-font-serif: "Newsreader", Georgia, serif;
+  --lib-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lib-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Starlight and Expressive Code tokens ------------------------------------ */
+
+:root {
+  --sl-font: var(--lib-font-sans);
+  --ec-codeFontFamily: var(--lib-font-mono);
+}
+
+/* Display typography ------------------------------------------------------- */
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.hero h1,
+.site-title {
+  font-family: var(--lib-font-serif);
+}
+
+.sl-markdown-content h1,
+.hero h1 {
+  line-height: 0.95;
+}
+
+/* Code typography ---------------------------------------------------------- */
+
+code,
+pre,
+kbd,
+samp,
+.sl-markdown-content code {
+  font-family: var(--lib-font-mono);
+}
