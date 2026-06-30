@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, normalizeLimit, normalizeOffset, parseRepository } from "../lib/librarian/github.js";
+import { githubRequest, normalizeLimit, normalizePagedOffset, parseRepository } from "../lib/librarian/github.js";
 
 interface CodeSearchResponse {
   total_count: number;
@@ -20,7 +20,12 @@ export default defineTool({
   description: "Search for code patterns inside a single GitHub repository.",
   inputSchema: z.object({
     repository: z.string().min(1).describe("GitHub repository as owner/repo or a repository URL."),
-    pattern: z.string().min(1).describe("GitHub code search query. Supports GitHub code search qualifiers."),
+    pattern: z
+      .string()
+      .min(1)
+      .describe(
+        "GitHub code search query. Supports boolean operators such as AND, OR, and NOT, plus qualifiers such as language:, path:, extension:, and in:.",
+      ),
     path: z.string().optional().describe("Optional path qualifier to limit search."),
     limit: z.number().int().positive().max(100).optional(),
     offset: z.number().int().nonnegative().optional(),
@@ -28,7 +33,7 @@ export default defineTool({
   async execute({ repository, pattern, path, limit, offset }, ctx) {
     const { owner, repo } = parseRepository(repository);
     const max = normalizeLimit(limit, 30, 100);
-    const start = normalizeOffset(offset);
+    const start = normalizePagedOffset(offset, max);
     const page = Math.floor(start / max) + 1;
     const query = [`repo:${owner}/${repo}`, pattern, path ? `path:${path}` : undefined].filter(Boolean).join(" ");
     const payload = (await githubRequest(ctx, {

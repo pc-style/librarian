@@ -9,6 +9,19 @@ Use the hosted Librarian service to get fast, source-backed findings about GitHu
 
 Service domain: `https://librarian.pcstyle.dev`
 
+Librarian is modeled after Amp's `librarian` subagent: a constrained research worker with no local shell, filesystem, or secret access. In Amp, callers invoke `librarian({ query: string })`; this eve service accepts the same research task as the session `message` field.
+
+The reverse-engineered Amp client exposes the Librarian tool names and client-side activity metadata, but not the server-side Librarian prompt text. Treat this service as a behavior-compatible research worker, not as a verbatim copy of Amp's private prompt.
+
+## Research tools
+
+The service exposes the same GitHub and web tool surface Amp's Librarian uses internally:
+
+- GitHub: `read_github`, `search_github`, `commit_search`, `list_directory_github`, `list_repositories`, `glob_github`, `diff`
+- Web: `web_search`, `read_web_page`
+
+Librarian runs those tools silently and returns a concise, source-backed answer with citations.
+
 ## Authentication
 
 Send an auth token on every request:
@@ -81,7 +94,7 @@ In vercel/next.js, what files at the repository root indicate package manager an
 
 ## API contract
 
-The script uses eve's HTTP session API:
+The script uses eve's HTTP session API. Map Amp's `librarian({ query })` call to `{ "message": "<query>" }`:
 
 1. `POST /eve/v1/session` with JSON `{ "message": "..." }`.
 2. Read `sessionId` from the response.

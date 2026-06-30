@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, normalizeLimit, normalizeOffset, parseRepository } from "../lib/librarian/github.js";
+import { githubRequest, normalizeLimit, normalizePagedOffset, parseRepository } from "../lib/librarian/github.js";
 
 interface CommitSearchResponse {
   total_count: number;
@@ -42,7 +42,7 @@ export default defineTool({
   async execute({ repository, query, author, since, until, path, limit, offset }, ctx) {
     const { owner, repo } = parseRepository(repository);
     const max = normalizeLimit(limit, 50, 100);
-    const start = normalizeOffset(offset);
+    const start = normalizePagedOffset(offset, max);
     const page = Math.floor(start / max) + 1;
     const terms = [
       `repo:${owner}/${repo}`,

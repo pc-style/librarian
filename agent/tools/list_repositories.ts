@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, normalizeLimit, normalizeOffset } from "../lib/librarian/github.js";
+import { githubRequest, normalizeLimit, normalizePagedOffset } from "../lib/librarian/github.js";
 
 interface RepositoryItem {
   full_name: string;
@@ -29,7 +29,7 @@ export default defineTool({
   }),
   async execute({ pattern, organization, language, limit, offset }, ctx) {
     const max = normalizeLimit(limit, 30, 100);
-    const start = normalizeOffset(offset);
+    const start = normalizePagedOffset(offset, max);
     const page = Math.floor(start / max) + 1;
 
     if (organization) {

@@ -5,9 +5,9 @@ import { existsSync } from "node:fs";
 const helper = "/Users/pcstyle/.agents/skills/skate/scripts/skate-env.py";
 const envKeys = [
   "PARALLEL_API_KEY",
-  "PIONEER_API_KEY",
-  "PIONEER_MODEL_ID",
-  "PIONEER_CONTEXT_WINDOW_TOKENS",
+  "EVE_MODEL",
+  "EVE_CONTEXT_WINDOW_TOKENS",
+  "AI_GATEWAY_API_KEY",
   "VERCEL_CONNECT_GITHUB_CONNECTOR",
 ];
 

@@ -30,6 +30,24 @@ interface GitHubErrorBody {
   documentation_url?: string;
 }
 
+const RESERVED_GITHUB_PATH_SEGMENTS = new Set([
+  "about",
+  "collections",
+  "events",
+  "explore",
+  "features",
+  "join",
+  "login",
+  "marketplace",
+  "organizations",
+  "orgs",
+  "pricing",
+  "search",
+  "settings",
+  "sponsors",
+  "topics",
+]);
+
 export function parseRepository(repository: string) {
   const trimmed = repository.trim();
   const urlMatch = trimmed.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/#?]+?)(?:\.git)?(?:[/#?].*)?$/i);
@@ -40,10 +58,16 @@ export function parseRepository(repository: string) {
     throw new Error("Repository must be `owner/repo` or a GitHub repository URL.");
   }
 
-  return {
-    owner: match.groups.owner,
-    repo: match.groups.repo.replace(/\.git$/i, ""),
-  };
+  const owner = match.groups.owner;
+  const repo = match.groups.repo.replace(/\.git$/i, "");
+
+  if (RESERVED_GITHUB_PATH_SEGMENTS.has(owner.toLowerCase())) {
+    throw new Error(
+      "Do not pass GitHub search, profile, or organization URLs as repositories. Use `owner/repo` or a repository URL.",
+    );
+  }
+
+  return { owner, repo };
 }
 
 export function normalizeLimit(limit: number | undefined, fallback: number, max: number) {
@@ -54,6 +78,14 @@ export function normalizeLimit(limit: number | undefined, fallback: number, max:
 export function normalizeOffset(offset: number | undefined) {
   if (offset === undefined) return 0;
   return Math.max(Math.trunc(offset), 0);
+}
+
+export function normalizePagedOffset(offset: number | undefined, limit: number) {
+  const normalized = normalizeOffset(offset);
+  if (normalized % limit !== 0) {
+    throw new Error(`offset must be divisible by limit (${limit}).`);
+  }
+  return normalized;
 }
 
 export function lineNumbered(content: string, startLine = 1) {

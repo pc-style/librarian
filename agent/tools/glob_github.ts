@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, globToRegExp, normalizeLimit, normalizeOffset, parseRepository } from "../lib/librarian/github.js";
+import { githubRequest, globToRegExp, normalizeLimit, normalizePagedOffset, parseRepository } from "../lib/librarian/github.js";
 
 interface RepoInfo {
   default_branch: string;
@@ -37,8 +37,8 @@ export default defineTool({
       .filter((item) => item.type === "blob" && item.path && matcher.test(item.path))
       .map((item) => ({ path: item.path, size: item.size, gitUrl: item.url }));
 
-    const start = normalizeOffset(offset);
     const max = normalizeLimit(limit, 100, 1000);
+    const start = normalizePagedOffset(offset, max);
 
     return {
       repository: `${owner}/${repo}`,

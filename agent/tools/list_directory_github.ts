@@ -14,7 +14,7 @@ export default defineTool({
   description: "List the contents of a directory in a GitHub repository.",
   inputSchema: z.object({
     repository: z.string().min(1).describe("GitHub repository as owner/repo or a repository URL."),
-    path: z.string().default("").describe("Directory path; empty string or . for repository root."),
+    path: z.string().describe("Directory path; use empty string or . for repository root."),
     limit: z.number().int().positive().max(1000).optional().describe("Maximum entries to return."),
   }),
   async execute({ repository, path, limit }, ctx) {
