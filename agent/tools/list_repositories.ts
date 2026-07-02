@@ -46,7 +46,7 @@ export default defineTool({
         authenticated: canUseUserAuth,
       })) as GitHubAccount;
 
-      if (!pattern && !language) {
+      if (!pattern && !language && (account.type === "Organization" || !canUseUserAuth)) {
         const ownerReposPath =
           account.type === "Organization"
             ? `/orgs/${encodeURIComponent(organization)}/repos`
