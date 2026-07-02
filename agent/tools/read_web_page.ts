@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { parallelRequest } from "../lib/librarian/parallel.js";
@@ -14,10 +15,52 @@ function isPublicInternetUrl(url: string) {
 
   const host = parsed.hostname.toLowerCase();
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
-  if (host === "127.0.0.1" || host.startsWith("127.")) return false;
-  if (host === "::1" || host === "[::1]") return false;
+  if (isPrivateOrSpecialIp(host)) return false;
 
   return true;
+}
+
+function isPrivateOrSpecialIp(host: string) {
+  const normalized = host.replace(/^\[|\]$/g, "");
+  const ipVersion = isIP(normalized);
+  if (ipVersion === 0) return false;
+
+  if (ipVersion === 4) {
+    return isPrivateOrSpecialIpv4(normalized);
+  }
+
+  const compact = normalized.toLowerCase();
+  const ipv4Mapped = compact.match(/^::ffff:(?<ipv4>\d+\.\d+\.\d+\.\d+)$/);
+  if (ipv4Mapped?.groups?.ipv4) return isPrivateOrSpecialIpv4(ipv4Mapped.groups.ipv4);
+  if (compact.startsWith("::ffff:")) return true;
+
+  const firstHextet = Number.parseInt(compact.split(":", 1)[0] || "0", 16);
+  return (
+    compact === "::" ||
+    compact === "::1" ||
+    compact.startsWith("2001:db8:") ||
+    compact.startsWith("2001:2:") ||
+    (firstHextet & 0xfe00) === 0xfc00 ||
+    (firstHextet & 0xffc0) === 0xfe80 ||
+    (firstHextet & 0xff00) === 0xff00
+  );
+}
+
+function isPrivateOrSpecialIpv4(ip: string) {
+  const [first, second, third] = ip.split(".").map(Number);
+
+  return (
+    first === 0 ||
+    first === 10 ||
+    first === 127 ||
+    (first === 100 && second >= 64 && second <= 127) ||
+    (first === 169 && second === 254) ||
+    (first === 172 && second >= 16 && second <= 31) ||
+    (first === 192 && ((second === 0 && (third === 0 || third === 2)) || second === 168)) ||
+    (first === 198 && (second === 18 || second === 19 || (second === 51 && third === 100))) ||
+    (first === 203 && second === 0 && third === 113) ||
+    first >= 224
+  );
 }
 
 export default defineTool({
@@ -48,12 +91,11 @@ export default defineTool({
         search_queries: searchQueries,
         max_chars_total: fullContent ? 80_000 : 16_000,
         advanced_settings: {
-          full_content: {
-            enabled: fullContent,
+          excerpt_settings: {
+            max_chars_per_result: fullContent ? 16_000 : 8_000,
           },
-          fetch: {
-            cache_policy: forceRefetch ? "refresh" : "default",
-          },
+          full_content: fullContent ? { max_chars_per_result: 80_000 } : false,
+          fetch_policy: forceRefetch ? { max_age_seconds: 600, disable_cache_fallback: false } : undefined,
         },
       },
     });

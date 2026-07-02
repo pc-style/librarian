@@ -13,6 +13,13 @@ const githubAuth = connector
   : null;
 
 interface ToolContextWithAuth {
+  session?: {
+    auth?: {
+      current?: {
+        principalType?: string;
+      } | null;
+    };
+  };
   getToken(provider: NonNullable<typeof githubAuth>): Promise<{ token: string }>;
   requireAuth(provider: NonNullable<typeof githubAuth>): void;
 }
@@ -88,6 +95,14 @@ export function normalizePagedOffset(offset: number | undefined, limit: number) 
   return normalized;
 }
 
+export function hasGitHubAuth() {
+  return githubAuth !== null;
+}
+
+export function hasUserGitHubAuth(ctx: ToolContextWithAuth) {
+  return githubAuth !== null && ctx.session?.auth?.current?.principalType === "user";
+}
+
 export function lineNumbered(content: string, startLine = 1) {
   return content
     .split("\n")
@@ -119,19 +134,36 @@ export function applyReadRange(content: string, readRange?: [number, number]) {
 }
 
 export function globToRegExp(pattern: string) {
-  let source = "^";
+  return new RegExp(`^${globPartToRegExp(pattern)}$`);
+}
+
+function globPartToRegExp(pattern: string): string {
+  let source = "";
 
   for (let index = 0; index < pattern.length; index += 1) {
     const char = pattern[index];
     const next = pattern[index + 1];
 
-    if (char === "*" && next === "*") {
+    if (char === "*" && next === "*" && pattern[index + 2] === "/") {
+      source += "(?:.*/)?";
+      index += 2;
+    } else if (char === "*" && next === "*") {
       source += ".*";
       index += 1;
     } else if (char === "*") {
       source += "[^/]*";
     } else if (char === "?") {
       source += "[^/]";
+    } else if (char === "{") {
+      const closeIndex = findClosingBrace(pattern, index);
+      if (closeIndex === -1) {
+        source += "\\{";
+      } else {
+        const body = pattern.slice(index + 1, closeIndex);
+        const alternatives = splitBraceAlternatives(body).map(globPartToRegExp);
+        source += `(?:${alternatives.join("|")})`;
+        index = closeIndex;
+      }
     } else if ("\\^$+?.()|{}[]".includes(char)) {
       source += `\\${char}`;
     } else {
@@ -139,8 +171,38 @@ export function globToRegExp(pattern: string) {
     }
   }
 
-  source += "$";
-  return new RegExp(source);
+  return source;
+}
+
+function findClosingBrace(pattern: string, openIndex: number) {
+  let depth = 0;
+  for (let index = openIndex; index < pattern.length; index += 1) {
+    if (pattern[index] === "{") depth += 1;
+    if (pattern[index] === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function splitBraceAlternatives(body: string) {
+  const alternatives: string[] = [];
+  let depth = 0;
+  let start = 0;
+
+  for (let index = 0; index < body.length; index += 1) {
+    const char = body[index];
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (char === "," && depth === 0) {
+      alternatives.push(body.slice(start, index));
+      start = index + 1;
+    }
+  }
+
+  alternatives.push(body.slice(start));
+  return alternatives;
 }
 
 export async function githubRequest(ctx: ToolContextWithAuth, options: GitHubRequestOptions) {
@@ -168,6 +230,8 @@ export async function githubRequest(ctx: ToolContextWithAuth, options: GitHubReq
   }
 
   if (!response.ok) {
+    const authRetryable = response.status === 401 || response.status === 403 || response.status === 404;
+    const canUseUserAuth = hasUserGitHubAuth(ctx);
     let body: GitHubErrorBody | undefined;
     try {
       body = (await response.json()) as GitHubErrorBody;
@@ -175,11 +239,17 @@ export async function githubRequest(ctx: ToolContextWithAuth, options: GitHubReq
       body = undefined;
     }
 
-    if ((response.status === 401 || response.status === 403 || response.status === 404) && !options.authenticated && githubAuth) {
+    if (authRetryable && !options.authenticated && canUseUserAuth) {
       return githubRequest(ctx, { ...options, authenticated: true });
     }
 
-    if ((response.status === 401 || response.status === 403 || response.status === 404) && !githubAuth) {
+    if (authRetryable && !options.authenticated && githubAuth && !canUseUserAuth) {
+      throw new Error(
+        `GitHub request failed (${response.status}). Public access was not enough; private or rate-limited GitHub access requires an authenticated eve user session. ${body?.message ?? ""}`.trim(),
+      );
+    }
+
+    if (authRetryable && !githubAuth) {
       throw new Error(
         `GitHub request failed (${response.status}). Public access was not enough, and Vercel Connect GitHub auth is not configured. Set VERCEL_CONNECT_GITHUB_CONNECTOR to enable user authorization. ${body?.message ?? ""}`.trim(),
       );

@@ -52,8 +52,9 @@ the agent choose which tools to use.
 ## Different by constraint
 
 Librarian has no local shell, no filesystem, no environment access, no process
-or host inspection, and no secrets. Private GitHub requires a future authorized
-connector flow; there is no `GITHUB_TOKEN` fallback. The constraint is the
+or host inspection, and no secrets. Private GitHub requires an authenticated eve
+session and a configured Vercel Connect GitHub connector; there is no
+`GITHUB_TOKEN` fallback. The constraint is the
 point: a narrow, auditable research worker.
 
 > The original Amp client binary exposes tool names and UI metadata, but not the
