@@ -13,7 +13,7 @@
     "dev": "bun scripts/with-skate-env.mjs bunx eve dev",
     "dev:web": "cd web && bunx astro dev",
     "start": "bun scripts/with-skate-env.mjs bunx eve start",
-    "typecheck": "tsc"
+    "typecheck": "bun node_modules/typescript/bin/tsc"
   },
   "dependencies": {
     "@vercel/connect": "0.2.2",

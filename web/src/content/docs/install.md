@@ -41,5 +41,6 @@ If `LIBRARIAN_API_KEY` is missing, the bundled script falls back to `test123`.
 ## What it cannot access
 
 No local shell or filesystem, no environment access, no process or host
-inspection, and no secrets. Private GitHub needs a future authorized connector;
-there is no `GITHUB_TOKEN` fallback.
+inspection, and no secrets. Private GitHub needs an authenticated eve session
+and a configured Vercel Connect GitHub connector; there is no `GITHUB_TOKEN`
+fallback.

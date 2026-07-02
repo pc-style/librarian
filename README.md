@@ -50,7 +50,7 @@ These tools are used internally by the eve agent. Public callers normally send a
 - Public web pages and docs via Parallel.
 - Source-backed answers that cite repository paths and URLs.
 
-Librarian does **not** have local shell/filesystem access, local environment access, process inspection, host inspection, or secret access. Private GitHub access requires a future authorized connector flow; there is no `GITHUB_TOKEN` fallback.
+Librarian does **not** have local shell/filesystem access, local environment access, process inspection, host inspection, or secret access. Private GitHub access requires an authenticated eve session and a configured Vercel Connect GitHub connector; there is no `GITHUB_TOKEN` fallback.
 
 ## Install the agent skill
 

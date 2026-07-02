@@ -34,6 +34,10 @@ Search for code patterns inside a single GitHub repository.
 Supports boolean operators (`AND`, `OR`, `NOT`) and qualifiers (`language:`,
 `path:`, `extension:`, `in:`).
 
+Returned results include GitHub text-match snippets when available. Librarian
+adds line numbers to snippets for the first contextualized results so agents can
+jump directly to matching source lines.
+
 ### `commit_search`
 
 Search commit history in a single GitHub repository.
@@ -50,7 +54,8 @@ Search commit history in a single GitHub repository.
 Find files matching a glob pattern in a GitHub repository.
 
 - `repository` (string, required).
-- `filePattern` (string, required). Glob pattern.
+- `filePattern` (string, required). Glob pattern such as `**/*.ts` or
+  `**/*.{js,ts}`.
 - `limit` (number, optional). Default 100.
 
 ### `list_directory_github`
@@ -66,9 +71,13 @@ List the contents of a directory in a GitHub repository.
 List GitHub repositories, prioritizing repositories the caller can access.
 
 - `pattern` (string, optional). Match repository names.
-- `organization` (string, optional).
+- `organization` (string, optional). GitHub organization or user owner.
 - `language` (string, optional).
 - `limit` (number, optional). Default 30, max 100.
+
+When GitHub authorization is configured, Librarian lists authenticated user,
+collaborator, and organization-member repositories for authenticated user
+sessions. Anonymous sessions continue to use public repository search.
 
 ### `diff`
 
@@ -99,15 +108,16 @@ Read the contents of a web page at a URL.
 - `searchQueries` (string[], optional).
 - `fullContent` (boolean, optional). Return full page content even with an
   objective.
-- `forceRefetch` (boolean, optional). Default `false`; force a fresh fetch.
+- `forceRefetch` (boolean, optional). Default `false`; request fresher content
+  where supported.
 
 With only a `url`, returns the page converted to Markdown. With an
 `objective`, returns relevant excerpts unless `fullContent` is true. Not
-intended for localhost or non-public URLs.
+intended for localhost, private IP ranges, or non-public URLs.
 
 ## What it cannot do
 
 No local shell, no filesystem, no environment access, no process or host
-inspection, and no secrets. Private GitHub requires a future authorized
-connector flow; there is no `GITHUB_TOKEN` fallback. The boundary keeps the
-worker narrow and auditable.
+inspection, and no secrets. Private GitHub access requires an authenticated eve
+session and a configured Vercel Connect GitHub connector; there is no
+`GITHUB_TOKEN` fallback. The boundary keeps the worker narrow and auditable.

@@ -1,6 +1,9 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, normalizeLimit, normalizePagedOffset } from "../lib/librarian/github.js";
+import { githubRequest, hasUserGitHubAuth, normalizeLimit, normalizePagedOffset } from "../lib/librarian/github.js";
+
+const AUTHENTICATED_REPOSITORY_PAGE_SIZE = 100;
+const MAX_AUTHENTICATED_REPOSITORY_PAGES = 10;
 
 interface RepositoryItem {
   full_name: string;
@@ -18,6 +21,10 @@ interface RepositorySearchResponse {
   items: RepositoryItem[];
 }
 
+interface GitHubAccount {
+  type?: string;
+}
+
 export default defineTool({
   description: "List GitHub repositories, prioritizing repositories the user can access when Vercel Connect GitHub auth is configured.",
   inputSchema: z.object({
@@ -31,24 +38,48 @@ export default defineTool({
     const max = normalizeLimit(limit, 30, 100);
     const start = normalizePagedOffset(offset, max);
     const page = Math.floor(start / max) + 1;
+    const canUseUserAuth = hasUserGitHubAuth(ctx);
 
     if (organization) {
+      const account = (await githubRequest(ctx, {
+        path: `/users/${encodeURIComponent(organization)}`,
+        authenticated: canUseUserAuth,
+      })) as GitHubAccount;
+      const ownerQualifier = account.type === "Organization" ? "org" : "user";
+      const query = [
+        `${ownerQualifier}:${organization}`,
+        pattern ? `${pattern} in:name,description` : undefined,
+        language ? `language:${language}` : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ");
       const payload = (await githubRequest(ctx, {
-        path: `/orgs/${encodeURIComponent(organization)}/repos`,
-        searchParams: { per_page: max, page, sort: "updated" },
-      })) as RepositoryItem[];
-
-      const filtered = payload.filter((repo) => {
-        const matchesPattern = pattern ? repo.full_name.toLowerCase().includes(pattern.toLowerCase()) : true;
-        const matchesLanguage = language ? repo.language?.toLowerCase() === language.toLowerCase() : true;
-        return matchesPattern && matchesLanguage;
-      });
+        path: "/search/repositories",
+        authenticated: canUseUserAuth,
+        searchParams: { q: query, per_page: max, page, sort: "updated" },
+      })) as RepositorySearchResponse;
 
       return {
-        source: "organization_repositories",
+        source: "owner_repository_search",
         organization,
-        repositories: filtered.map(formatRepository),
+        ownerType: account.type,
+        query,
+        totalCount: payload.total_count,
+        incompleteResults: payload.incomplete_results,
+        repositories: payload.items.map(formatRepository),
         offset: start,
+      };
+    }
+
+    if (canUseUserAuth) {
+      const collected = await collectAuthenticatedRepositories(ctx, { pattern, language, start, max });
+
+      return {
+        source: "authenticated_user_repositories",
+        repositories: collected.repositories.map(formatRepository),
+        offset: start,
+        searchedPages: collected.searchedPages,
+        truncated: collected.truncated,
       };
     }
 
@@ -68,6 +99,53 @@ export default defineTool({
     };
   },
 });
+
+async function collectAuthenticatedRepositories(
+  ctx: Parameters<typeof githubRequest>[0],
+  options: { pattern: string | undefined; language: string | undefined; start: number; max: number },
+) {
+  const repositories: RepositoryItem[] = [];
+  let searchedPages = 0;
+
+  for (let page = 1; page <= MAX_AUTHENTICATED_REPOSITORY_PAGES; page += 1) {
+    searchedPages = page;
+    const payload = (await githubRequest(ctx, {
+      path: "/user/repos",
+      authenticated: true,
+      searchParams: {
+        per_page: AUTHENTICATED_REPOSITORY_PAGE_SIZE,
+        page,
+        sort: "updated",
+        affiliation: "owner,collaborator,organization_member",
+      },
+    })) as RepositoryItem[];
+
+    repositories.push(...payload.filter((repo) => matchesRepository(repo, options.pattern, options.language)));
+
+    if (repositories.length >= options.start + options.max || payload.length < AUTHENTICATED_REPOSITORY_PAGE_SIZE) {
+      return {
+        repositories: repositories.slice(options.start, options.start + options.max),
+        searchedPages,
+        truncated: payload.length === AUTHENTICATED_REPOSITORY_PAGE_SIZE,
+      };
+    }
+  }
+
+  return {
+    repositories: repositories.slice(options.start, options.start + options.max),
+    searchedPages,
+    truncated: true,
+  };
+}
+
+function matchesRepository(repo: RepositoryItem, pattern: string | undefined, language: string | undefined) {
+  const normalizedPattern = pattern?.toLowerCase();
+  const matchesPattern = normalizedPattern
+    ? repo.full_name.toLowerCase().includes(normalizedPattern) || (repo.description?.toLowerCase().includes(normalizedPattern) ?? false)
+    : true;
+  const matchesLanguage = language ? repo.language?.toLowerCase() === language.toLowerCase() : true;
+  return matchesPattern && matchesLanguage;
+}
 
 function formatRepository(repo: RepositoryItem) {
   return {

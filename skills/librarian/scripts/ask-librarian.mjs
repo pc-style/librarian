@@ -37,28 +37,52 @@ async function main() {
     throw new Error(`Failed to stream Librarian session (${streamResponse.status}): ${body}`);
   }
 
-  const text = await streamResponse.text();
   const messages = [];
+  let pending = "";
 
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    try {
-      const event = JSON.parse(line);
-      if (event.type === "message.completed" && event.data?.message) {
-        messages.push(event.data.message);
-      }
-      if ((event.type === "session.failed" || event.type === "turn.failed") && event.data) {
-        throw new Error(JSON.stringify(event.data));
-      }
-    } catch (error) {
-      if (error instanceof SyntaxError) continue;
-      throw error;
-    }
+  if (!streamResponse.body) {
+    throw new Error("Librarian stream response did not include a readable body.");
   }
+
+  const reader = streamResponse.body.getReader();
+  const decoder = new TextDecoder();
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    pending += decoder.decode(value, { stream: !done });
+    const lines = pending.split(/\r?\n/);
+    pending = lines.pop() ?? "";
+
+    for (const line of lines) {
+      handleEventLine(line, messages);
+    }
+
+    if (done) break;
+  }
+
+  handleEventLine(pending, messages);
 
   const answer = messages.at(-1);
   if (!answer) throw new Error("Librarian stream completed without a message.completed event.");
   process.stdout.write(`${answer}\n`);
+}
+
+function handleEventLine(line, messages) {
+  if (!line.trim()) return;
+  try {
+    const event = JSON.parse(line);
+    if (event.type === "message.completed" && event.data?.message) {
+      messages.push(event.data.message);
+    }
+    if ((event.type === "session.failed" || event.type === "turn.failed") && event.data) {
+      throw new Error(JSON.stringify(event.data));
+    }
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Malformed Librarian stream event: ${line}`);
+    }
+    throw error;
+  }
 }
 
 main().catch((error) => {

@@ -1,6 +1,8 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubRequest, normalizeLimit, normalizePagedOffset, parseRepository } from "../lib/librarian/github.js";
+import { githubRequest, lineNumbered, normalizeLimit, normalizePagedOffset, parseRepository } from "../lib/librarian/github.js";
+
+const MAX_CONTEXTUALIZED_RESULTS = 20;
 
 interface CodeSearchResponse {
   total_count: number;
@@ -9,10 +11,21 @@ interface CodeSearchResponse {
     name: string;
     path: string;
     html_url: string;
+    url: string;
     repository?: {
       full_name: string;
     };
     score?: number;
+    text_matches?: Array<{
+      object_url?: string;
+      object_type?: string;
+      property?: string;
+      fragment?: string;
+      matches?: Array<{
+        text?: string;
+        indices?: [number, number];
+      }>;
+    }>;
   }>;
 }
 
@@ -38,8 +51,17 @@ export default defineTool({
     const query = [`repo:${owner}/${repo}`, pattern, path ? `path:${path}` : undefined].filter(Boolean).join(" ");
     const payload = (await githubRequest(ctx, {
       path: "/search/code",
+      accept: "application/vnd.github.text-match+json",
       searchParams: { q: query, per_page: max, page },
     })) as CodeSearchResponse;
+
+    const contextualizedResults = await Promise.all(
+      payload.items.slice(0, MAX_CONTEXTUALIZED_RESULTS).map(async (item) => ({
+        path: item.path,
+        snippets: await snippetsForItem(ctx, item),
+      })),
+    );
+    const snippetsByPath = new Map(contextualizedResults.map((result) => [result.path, result.snippets]));
 
     return {
       repository: `${owner}/${repo}`,
@@ -47,13 +69,61 @@ export default defineTool({
       totalCount: payload.total_count,
       incompleteResults: payload.incomplete_results,
       offset: start,
+      contextualizedCount: contextualizedResults.length,
+      contextualizedLimit: MAX_CONTEXTUALIZED_RESULTS,
       results: payload.items.map((item) => ({
         name: item.name,
         path: item.path,
         repository: item.repository?.full_name,
         url: item.html_url,
         score: item.score,
+        snippets: snippetsByPath.get(item.path) ?? snippetsFromTextMatches(item.text_matches),
       })),
     };
   },
 });
+
+async function snippetsForItem(ctx: Parameters<typeof githubRequest>[0], item: CodeSearchResponse["items"][number]) {
+  const rawSnippets = snippetsFromTextMatches(item.text_matches);
+  if (rawSnippets.length === 0) return [];
+
+  try {
+    const content = await githubRequest(ctx, {
+      path: item.url,
+      raw: true,
+      accept: "application/vnd.github.raw+json",
+    });
+
+    if (typeof content !== "string") return rawSnippets;
+
+    return rawSnippets.map((snippet) => addLineNumbers(content, snippet));
+  } catch {
+    return rawSnippets;
+  }
+}
+
+function snippetsFromTextMatches(textMatches: CodeSearchResponse["items"][number]["text_matches"]) {
+  return (textMatches ?? [])
+    .filter((match) => match.fragment)
+    .map((match) => ({
+      objectType: match.object_type,
+      property: match.property,
+      fragment: match.fragment ?? "",
+      matchedText: match.matches?.map((textMatch) => textMatch.text).filter(Boolean) ?? [],
+    }));
+}
+
+function addLineNumbers(content: string, snippet: ReturnType<typeof snippetsFromTextMatches>[number]) {
+  const startIndex = content.indexOf(snippet.fragment);
+  if (startIndex === -1) return snippet;
+
+  const startLine = content.slice(0, startIndex).split("\n").length;
+  const endLine = startLine + snippet.fragment.split("\n").length - 1;
+
+  return {
+    ...snippet,
+    startLine,
+    endLine,
+    content: lineNumbered(snippet.fragment, startLine),
+  };
+}
