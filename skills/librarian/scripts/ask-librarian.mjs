@@ -69,19 +69,21 @@ async function main() {
 
 function handleEventLine(line, messages) {
   if (!line.trim()) return;
+  let event;
   try {
-    const event = JSON.parse(line);
-    if (event.type === "message.completed" && event.data?.message) {
-      messages.push(event.data.message);
-    }
-    if ((event.type === "session.failed" || event.type === "turn.failed") && event.data) {
-      throw new Error(JSON.stringify(event.data));
-    }
+    event = JSON.parse(line);
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Malformed Librarian stream event: ${line}`);
     }
     throw error;
+  }
+
+  if (event.type === "message.completed" && event.data?.message) {
+    messages.push(event.data.message);
+  }
+  if (event.type === "session.failed" || event.type === "turn.failed") {
+    throw new Error(JSON.stringify(event.data ?? { type: event.type }));
   }
 }
 

@@ -45,6 +45,28 @@ export default defineTool({
         path: `/users/${encodeURIComponent(organization)}`,
         authenticated: canUseUserAuth,
       })) as GitHubAccount;
+
+      if (!pattern && !language) {
+        const ownerReposPath =
+          account.type === "Organization"
+            ? `/orgs/${encodeURIComponent(organization)}/repos`
+            : `/users/${encodeURIComponent(organization)}/repos`;
+        const payload = (await githubRequest(ctx, {
+          path: ownerReposPath,
+          authenticated: canUseUserAuth,
+          searchParams: { per_page: max, page, sort: "updated", direction: "desc", type: "all" },
+        })) as RepositoryItem[];
+
+        return {
+          source: "owner_repositories",
+          organization,
+          ownerType: account.type,
+          repositories: payload.map(formatRepository),
+          offset: start,
+          truncated: payload.length === max,
+        };
+      }
+
       const ownerQualifier = account.type === "Organization" ? "org" : "user";
       const query = [
         `${ownerQualifier}:${organization}`,
@@ -100,7 +122,7 @@ export default defineTool({
   },
 });
 
-async function collectAuthenticatedRepositories(
+export async function collectAuthenticatedRepositories(
   ctx: Parameters<typeof githubRequest>[0],
   options: { pattern: string | undefined; language: string | undefined; start: number; max: number },
 ) {
@@ -138,7 +160,7 @@ async function collectAuthenticatedRepositories(
   };
 }
 
-function matchesRepository(repo: RepositoryItem, pattern: string | undefined, language: string | undefined) {
+export function matchesRepository(repo: RepositoryItem, pattern: string | undefined, language: string | undefined) {
   const normalizedPattern = pattern?.toLowerCase();
   const matchesPattern = normalizedPattern
     ? repo.full_name.toLowerCase().includes(normalizedPattern) || (repo.description?.toLowerCase().includes(normalizedPattern) ?? false)
