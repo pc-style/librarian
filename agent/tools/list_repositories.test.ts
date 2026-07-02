@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { collectAuthenticatedRepositories, matchesRepository } from "./list_repositories.js";
+import { AUTHENTICATED_REPOSITORY_PAGE_SIZE, collectAuthenticatedRepositories, matchesRepository } from "./list_repositories.js";
 
 const originalFetch = globalThis.fetch;
 
@@ -31,7 +31,7 @@ test("collectAuthenticatedRepositories exits once the requested slice is availab
   const calls: string[] = [];
   globalThis.fetch = (async (input) => {
     calls.push(String(input));
-    return jsonResponse(Array.from({ length: 100 }, (_, index) => repo(index)));
+    return jsonResponse(Array.from({ length: AUTHENTICATED_REPOSITORY_PAGE_SIZE }, (_, index) => repo(index)));
   }) as typeof fetch;
 
   try {
@@ -50,9 +50,10 @@ test("collectAuthenticatedRepositories exits once the requested slice is availab
 });
 
 test("collectAuthenticatedRepositories keeps paging until pagination ends naturally", async () => {
+  const secondPageRepoIndex = AUTHENTICATED_REPOSITORY_PAGE_SIZE + 1;
   const pages = [
-    Array.from({ length: 100 }, (_, index) => repo(index, { language: "JavaScript" })),
-    [repo(101, { language: "TypeScript" })],
+    Array.from({ length: AUTHENTICATED_REPOSITORY_PAGE_SIZE }, (_, index) => repo(index, { language: "JavaScript" })),
+    [repo(secondPageRepoIndex, { language: "TypeScript" })],
   ];
   const calls: string[] = [];
   globalThis.fetch = (async (input) => {
@@ -68,7 +69,7 @@ test("collectAuthenticatedRepositories keeps paging until pagination ends natura
     assert.equal(calls.length, 2);
     assert.deepEqual(
       result.repositories.map((item) => item.full_name),
-      ["owner/repo-101"],
+      [`owner/repo-${secondPageRepoIndex}`],
     );
     assert.equal(result.searchedPages, 2);
     assert.equal(result.truncated, false);

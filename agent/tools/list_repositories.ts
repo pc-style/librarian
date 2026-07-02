@@ -2,7 +2,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { githubRequest, hasUserGitHubAuth, normalizeLimit, normalizePagedOffset } from "../lib/librarian/github.js";
 
-const AUTHENTICATED_REPOSITORY_PAGE_SIZE = 100;
+export const AUTHENTICATED_REPOSITORY_PAGE_SIZE = 100;
 const MAX_AUTHENTICATED_REPOSITORY_PAGES = 10;
 
 interface RepositoryItem {
